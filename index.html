@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Matemática II Trimestre - 3º BGU</title>
+  
+  <!-- Librería KaTeX para renderizado matemático profesional -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
+
+  <style>
+    :root {
+      --primary: #0f172a;
+      --primary-hover: #1e293b;
+      --secondary: #0284c7;
+      --accent: #d97706;
+      --bg-slate: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --success: #16a34a;
+      --error: #dc2626;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-slate); color: var(--text-main); line-height: 1.6; padding-bottom: 60px; }
+
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: white;
+      padding: 2.2rem 1.5rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    header h1 { font-size: 2.2rem; margin-bottom: 0.4rem; }
+    header p { color: #93c5fd; font-size: 1.05rem; }
+    .badge-info { display: inline-block; background: rgba(255,255,255,0.15); padding: 6px 18px; border-radius: 20px; font-size: 0.9rem; margin-top: 10px; font-weight: 500; }
+
+    /* Formulario Informativo */
+    .student-info-card {
+      background: #ffffff;
+      border: 2px solid #bfdbfe;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin: 1.5rem auto;
+      max-width: 1100px;
+      box-shadow: var(--shadow);
+    }
+    .student-info-card h3 { color: var(--primary); margin-bottom: 1rem; font-size: 1.25rem; border-bottom: 2px solid #eff6ff; padding-bottom: 0.4rem; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.2rem;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label { font-size: 0.9rem; font-weight: 700; color: #334155; }
+    .form-group input, .form-group select {
+      padding: 0.65rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(2,132,199,0.1); }
+    .form-group input:disabled, .form-group select:disabled { background: #f1f5f9; cursor: not-allowed; }
+
+    /* Navegación por Pestañas */
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      background: white;
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .tab-btn {
+      padding: 1rem 1.8rem;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-btn:hover { color: var(--secondary); }
+    .tab-btn.active { color: var(--secondary); border-bottom-color: var(--secondary); }
+
+    .container { max-width: 1100px; margin: 1.5rem auto; padding: 0 1rem; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 1.8rem;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .card h2 { color: var(--primary); font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid var(--bg-slate); padding-bottom: 0.5rem; }
+    .card h3 { color: var(--secondary); font-size: 1.25rem; margin: 1.4rem 0 0.6rem; }
+    .card p, .card ul { margin-bottom: 0.8rem; font-size: 1.02rem; }
+    .card ul { padding-left: 1.5rem; }
+    .card li { margin-bottom: 0.4rem; }
+
+    .formula-box {
+      background: #eff6ff;
+      border-left: 4px solid var(--secondary);
+      padding: 1.2rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 1.2rem 0;
+      font-size: 1.05rem;
+    }
+
+    .step-box {
+      background: #f0fdf4;
+      border-left: 4px solid var(--success);
+      padding: 1rem 1.2rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 1rem 0;
+    }
+    
+    /* Contenedor SVG */
+    .svg-container {
+      text-align: center;
+      margin: 1.5rem 0;
+      background: #f1f5f9;
+      padding: 1.2rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .svg-container h4 { font-size: 1rem; color: #334155; margin-bottom: 0.6rem; }
+    svg { max-width: 100%; height: auto; background: #ffffff; border-radius: 8px; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); }
+
+    /* Ejercicios y Preguntas */
+    .task-item, .question-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.4rem;
+      margin-bottom: 1.4rem;
+    }
+    .task-item h4 { color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .options-group { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .option-label:hover { background: #f1f5f9; border-color: var(--secondary); }
+    .option-label input { accent-color: var(--secondary); width: 18px; height: 18px; }
+    .option-label input:disabled { cursor: not-allowed; }
+
+    .btn {
+      background: var(--secondary);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.6rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .btn:hover { background: #0369a1; }
+    .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-secondary { background: #0f766e; }
+    .btn-secondary:hover { background: #115e59; }
+
+    .feedback { margin-top: 0.8rem; font-weight: bold; padding: 0.8rem 1rem; border-radius: 6px; display: none; }
+    .feedback.correct { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .feedback.incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+    /* Timer y Banner */
+    .timer-box {
+      position: sticky;
+      top: 55px;
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      color: #92400e;
+      padding: 0.8rem;
+      border-radius: var(--radius);
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.05rem;
+      z-index: 90;
+    }
+    .score-banner {
+      text-align: center;
+      padding: 2rem;
+      background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+      color: white;
+      border-radius: var(--radius);
+      margin-bottom: 1.8rem;
+      display: none;
+      box-shadow: var(--shadow);
+    }
+    .score-banner h2 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+
+    .justification-box {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #e0f2fe;
+      border-left: 4px solid #0284c7;
+      font-size: 0.95rem;
+      color: #0369a1;
+      border-radius: 0 6px 6px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Simulador Web de Matemática</h1>
+    <p>Plataforma de Clases, Ejercicios Interactivos y Evaluación — 3º BGU</p>
+    <div class="badge-info">Docente: Msc. Edwin Lliguipuma E. | II Trimestre 2026</div>
+  </header>
+
+  <!-- FORMULARIO DE DATOS INFORMATIVOS -->
+  <section class="student-info-card">
+    <h3>📋 Datos Informativos del Estudiante</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="student-name">Nombres y Apellidos Completo:</label>
+        <input type="text" id="student-name" placeholder="Ej. Mateo Sebastián Silva" required>
+      </div>
+      <div class="form-group">
+        <label for="student-course">Curso:</label>
+        <select id="student-course" disabled>
+          <option value="3ro BGU" selected>3ro BGU</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="student-specialty">Especialidad:</label>
+        <select id="student-specialty">
+          <option value="">-- Seleccionar Especialidad --</option>
+          <option value="Informática">Informática</option>
+          <option value="Contabilidad">Contabilidad</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="student-parallel">Paralelo:</label>
+        <select id="student-parallel">
+          <option value="">-- Seleccionar Paralelo --</option>
+          <option value="A">Paralelo A</option>
+          <option value="B">Paralelo B</option>
+          <option value="C">Paralelo C</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('clases', event)">📚 Clases Teóricas Completas (5 Temas)</button>
+    <button class="tab-btn" onclick="switchTab('tareas', event)">✏️ Tareas para Clase (10 Ejercicios)</button>
+    <button class="tab-btn" onclick="switchTab('evaluacion', event)">📝 Evaluación de Examen (20 Preguntas)</button>
+  </nav>
+
+  <main class="container">
+
+    <!-- TAB 1: CLASES TEÓRICAS DETALLADAS DE 3ros -->
+    <section id="clases" class="tab-content active">
+
+      <!-- TEMA 1 -->
+      <article class="card">
+        <h2>Tema 1: Función Exponencial (Análisis, Dominio, Recorrido y Asíntotas)</h2>
+        <p>Una función exponencial estándar tiene la forma \(f(x) = a^x\) (con \(a > 0\) y \(a \neq 1\)). Cuando se le aplica una traslación vertical \(f(x) = a^x + c\), la función modifica su asíntota horizontal y su recorrido.</p>
+
+        <h3>Propiedades Fundamentales</h3>
+        <ul>
+          <li><b>Dominio:</b> Todo el conjunto de números reales \(\text{Dom}(f) = \mathbb{R}\)[cite: 3].</li>
+          <li><b>Asíntota Horizontal (AH):</b> Corresponde a la recta horizontal \(y = c\). Para \(f(x) = 2^x + 1\), la asíntota es <b>\(y = 1\)</b>[cite: 3].</li>
+          <li><b>Recorrido / Rango:</b> El intervalo abierto \((c, +\infty)\). Para \(f(x) = 2^{x+1}\) o \(2^x + 1\), el recorrido es <b>\((1, +\infty)\)</b>[cite: 3].</li>
+          <li><b>Corte con el Eje Y:</b> Se evalúa en \(x = 0\). Para \(f(x) = 2^{x+1} \implies f(0) = 2^1 = 2\), intersecando en el punto \((0, 2)\)[cite: 3].</li>
+        </ul>
+
+        <div class="svg-container">
+          <h4>Representación Gráfica de la Función Exponencial \(f(x) = 2^{x+1}\)</h4>
+          <svg width="550" height="240" viewBox="-5 -2 10 8">
+            <line x1="-5" y1="0" x2="5" y2="0" stroke="#64748b" stroke-width="0.1"/>
+            <line x1="0" y1="-2" x2="0" y2="6" stroke="#64748b" stroke-width="0.1"/>
+            <!-- AH y = 1 -->
+            <line x1="-5" y1="1" x2="5" y2="1" stroke="#dc2626" stroke-width="0.15" stroke-dasharray="0.25"/>
+            <!-- Curva Exponencial -->
+            <path d="M -5,1.03 Q -2,1.25 0,2 T 2,7" fill="none" stroke="#0d9488" stroke-width="0.3"/>
+            <circle cx="0" cy="2" r="0.2" fill="#dc2626"/>
+            <text x="-4.5" y="0.7" font-size="0.45" fill="#dc2626">Asíntota Horizontal: y = 1</text>
+            <text x="0.4" y="2" font-size="0.45" fill="#1e3a8a">Corte Y: (0, 2)</text>
+          </svg>
+        </div>
+      </article>
+
+      <!-- TEMA 2 -->
+      <article class="card">
+        <h2>Tema 2: Propiedades de los Logaritmos</h2>
+        <p>Los logaritmos son la operación inversa de la exponenciación[cite: 3]. Si \(b^y = x\), entonces \(\log_b(x) = y\).</p>
+
+        <h3>Propiedades Fundamentales</h3>
+        <div class="formula-box">
+          • <b>Logaritmo de un Producto:</b> \(\log_b(M \cdot N) = \log_b(M) + \log_b(N)\)[cite: 3]<br>
+          • <b>Logaritmo de un Cociente:</b> \(\log_b\left(\frac{M}{N}\right) = \log_b(M) - \log_b(N)\)[cite: 3]<br>
+          • <b>Logaritmo de una Potencia:</b> \(\log_b(M^k) = k \cdot \log_b(M)\)<br>
+          • <b>Base idéntica:</b> \(\log_b(b) = 1\) y \(\log_b(1) = 0\).
+        </div>
+
+        <div class="step-box">
+          <b>Ejemplo Analítico Resuelto:</b> Simplificar la expresión \(E = \log_2(4) + \log_2(64) - \log_2(8)\)[cite: 3]:<br>
+          1. Aplicamos la propiedad del producto y cociente en una sola expresión:
+          \[ E = \log_2\left(\frac{4 \cdot 64}{8}\right) \]
+          2. Simplificamos numéricamente dentro del argumento: \(\frac{256}{8} = 32\).<br>
+          3. Evaluamos el logaritmo resultante: \(E = \log_2(32)\).<br>
+          4. Como \(2^5 = 32\), se concluye que <b>\(E = 5\)</b>[cite: 3].
+        </div>
+      </article>
+
+      <!-- TEMA 3 -->
+      <article class="card">
+        <h2>Tema 3: Función Logarítmica e Inversa de la Exponencial</h2>
+        <p>La función logarítmica \(g(x) = \log_a(x)\) es la función inversa de la exponencial \(f(x) = a^x\)[cite: 3]. Sus gráficas son simétricas con respecto a la recta bisectriz \(y = x\)[cite: 3].</p>
+
+        <h3>Propiedades Analíticas de \(g(x) = \log_2(x)\)</h3>
+        <ul>
+          <li><b>Dominio:</b> Solo definido para números reales positivos \(\text{Dom}(g) = (0, +\infty)\)[cite: 3].</li>
+          <li><b>Recorrido / Rango:</b> Todos los números reales \(\text{Rec}(g) = \mathbb{R}\)[cite: 3].</li>
+          <li><b>Asíntota Vertical (AV):</b> Es el eje Y, representado por la recta <b>\(x = 0\)</b>[cite: 3].</li>
+          <li><b>Intersección con Eje X:</b> Interseca en el punto <b>\((1, 0)\)</b>[cite: 3].</li>
+        </ul>
+
+        <div class="svg-container">
+          <h4>Simetría entre \(f(x) = 2^x\) y \(g(x) = \log_2(x)\) respecto a \(y = x\)</h4>
+          <svg width="550" height="240" viewBox="-4 -4 8 8">
+            <line x1="-4" y1="0" x2="4" y2="0" stroke="#64748b" stroke-width="0.1"/>
+            <line x1="0" y1="-4" x2="0" y2="4" stroke="#64748b" stroke-width="0.1"/>
+            <!-- Recta y = x -->
+            <line x1="-4" y1="-4" x2="4" y2="4" stroke="#dc2626" stroke-width="0.15" stroke-dasharray="0.2"/>
+            <!-- f(x) = 2^x -->
+            <path d="M -4,0.06 Q -1,0.5 0,1 T 2,4" fill="none" stroke="#0d9488" stroke-width="0.25"/>
+            <!-- g(x) = log2(x) -->
+            <path d="M 0.06,-4 Q 0.5,-1 1,0 T 4,2" fill="none" stroke="#2563eb" stroke-width="0.25"/>
+            <text x="-3" y="3.5" font-size="0.4" fill="#dc2626">Recta y = x</text>
+            <text x="-3.5" y="1" font-size="0.4" fill="#0d9488">f(x) = 2^x</text>
+            <text x="1.5" y="-1.5" font-size="0.4" fill="#2563eb">g(x) = log₂(x)</text>
+          </svg>
+        </div>
+      </article>
+
+      <!-- TEMA 4 -->
+      <article class="card">
+        <h2>Tema 4: Resolución de Ecuaciones Exponenciales</h2>
+        <p>Una ecuación exponencial contiene la incógnita en el exponente[cite: 3]. El método fundamental consiste en descomponer los términos numéricos para expresar ambos miembros en la misma base[cite: 3].</p>
+
+        <div class="formula-box">
+          <b>Propiedad de Igualdad de Bases:</b>
+          \[ \text{Si } a^{f(x)} = a^{g(x)} \implies f(x) = g(x) \quad (a > 0, a \neq 1) \]
+        </div>
+
+        <div class="step-box">
+          <b>Ejemplo Resuelto Paso a Paso:</b> Resolver \(3^{2x - 1} = 81\)[cite: 3]:<br>
+          1. Descomponemos 81 en potencia de base 3: \(81 = 3^4\)[cite: 3].<br>
+          2. Reemplazamos en la ecuación: \(3^{2x - 1} = 3^4\).<br>
+          3. Igualamos los exponentes: \(2x - 1 = 4\).<br>
+          4. Despejamos la incógnita \(x\): \(2x = 5 \implies \mathbf{x = \frac{5}{2}}\)[cite: 3].
+        </div>
+      </article>
+
+      <!-- TEMA 5 -->
+      <article class="card">
+        <h2>Tema 5: Sucesiones Geométricas y Aplicaciones Prácticas (Decaimiento de Fármacos / STEAM)</h2>
+        <p>Una sucesión geométrica es una secuencia donde cada término se obtiene multiplicando al anterior por una razón constante \(r\)[cite: 3].</p>
+
+        <h3>Modelo de Decaimiento por Eliminación de Fármaco</h3>
+        <p>Fórmula del término general: \[ a_n = a_1 \cdot r^{n - 1} \]</p>
+
+        <div class="step-box">
+          <b>Problema Real Resuelto:</b> Un paciente recibe una dosis inicial de \(80\text{ mg}\) de medicamento (\(a_1 = 80\)). El organismo elimina el 50% (la mitad, \(r = \frac{1}{2}\)) cada 3 horas[cite: 3].<br>
+          • <b>Etapa 1 (\(t = 0\text{ h}\)):</b> \(a_1 = 80\text{ mg}\)[cite: 3]<br>
+          • <b>Etapa 2 (\(t = 3\text{ h}\)):</b> \(a_2 = 80 \cdot \frac{1}{2} = 40\text{ mg}\)<br>
+          • <b>Etapa 3 (\(t = 6\text{ h}\)):</b> \(a_3 = 40 \cdot \frac{1}{2} = 20\text{ mg}\)<br>
+          • <b>Etapa 4 (\(t = 9\text{ h}\)):</b> \(a_4 = 20 \cdot \frac{1}{2} = 10\text{ mg}\)<br>
+          • <b>Etapa 5 (\(t = 12\text{ h}\)):</b> \(a_5 = 10 \cdot \frac{1}{2} = \mathbf{5\text{ mg}}\)[cite: 3]
+        </div>
+      </article>
+
+    </section>
+
+    <!-- TAB 2: TAREAS PARA CLASE (10 EJERCICIOS) -->
+    <section id="tareas" class="tab-content">
+      <div class="card">
+        <h2>✏️ Banco de Tareas para Clase (10 Ejercicios Interactivos)</h2>
+        <p>Resuelve los siguientes 10 ejercicios interactivos correspondientes a los 5 temas para preparar tu examen[cite: 3].</p>
+
+        <!-- Tarea 1 -->
+        <div class="task-item">
+          <h4>Ejercicio 1 (Tema 1 - Función Exponencial):</h4>
+          <p>¿Cuál es el recorrido o rango de la función exponencial \(f(x) = 2^{x+1}\)?[cite: 3]</p>
+          <div class="options-group">
+            <label class="option-label"><input type="radio" name="t1" value="correct"> \((1, +\infty)\)</label>
+            <label class="option-label"><input type="radio" name="t1" value="wrong"> \((0, +\infty)\)</label>
+          </div>
+          <button class="btn btn-secondary" style="margin-top:10px;" onclick="checkTask('t1', 't1-fb', '¡Correcto! Como la función está desplazada verticalmente en 1 unidad, el recorrido es (1, +∞)[cite: 3].')">Comprobar</button>
+          <div id="t1-fb" class="feedback"></div>
+        </div>
+
+        <!-- Tarea 2 -->
+        <div class="task-item">
+          <h4>Ejercicio 2 (Tema 1 - Asíntota Horizontal):</h4>
+          <p>Indica la ecuación de la asíntota horizontal para la función \(f(x) = 2^x + 1\)[cite: 3].</p>
+          <div class="options-group">
+            <label class="option-label"><input type="radio" name="t2" value="correct"> \(y = 1\)</label>
+            <label class="option-label"><input type="radio" name="t2" value="wrong"> \(x = 0\)</label>
+          </div>
+          <button class="btn btn-secondary" style="margin-top:10px;" onclick="checkTask('t2', 't2-fb', '¡Excelente! La asíntota horizontal es la recta y = 1[cite: 3].')">Comprobar</button>
+          <div id="t2-fb" class="feedback"></div>
+        </div>
+
+        <!-- Tarea 3 -->
+        <div class="task-item">
+          <h4>Ejercicio 3 (Tema 2 - Operación Logarítmica):</h4>
+          <p>Calcula el valor simplificado de la expresión: \(E = \log_2(4) + \log_2(64) - \log_2(8)\)[cite: 3].</p>
+          <input type="number" id="t3-ans" style="padding:8px; width:130px; margin-top:8px;" placeholder="Resultado">
+          <button class="btn btn-secondary" onclick="checkTaskInput('t3-ans', 5, 't3-fb', '¡Muy bien! E = log₂(256 / 8) = log₂(32) = 5[cite: 3].')">Comprobar</button>
+          <div id="t3-fb" class="feedback"></div>
+        </div>
+
+        <!-- Tarea 4 -->
+        <div class="task-item">
+          <h4>Ejercicio 4 (Tema 2 - Propiedad del Cociente):</h4>
+          <p>La expresión \(\log_b(M) - \log_b(N)\) es equivalente a:</p>
+          <div class="options-group">
+            <label class="option-label"><input type="radio" name="t4" value="correct"> \(\log_b\left(\frac{M}{N}\right)\)</label>
+            <label class="option-label"><input type="radio" name="t4" value="wrong"> \(\log_b(M \cdot N)\)</label>
+          </div>
+          <button class="btn btn-secondary" style="margin-top:10px;" onclick="checkTask('t4', 't4-fb', '¡Correcto! Es la propiedad fundamental del cociente de logaritmos[cite: 3].')">Comprobar</button>
+          <div id="t4-fb" class="feedback"></div>
+        </div>
+
+        <!-- Tarea 5 -->
+        <div class="task-item">
+          <h4>Ejercicio 5 (Tema 3 - Inversa Logarítmica):</h4>
+          <p>La función logarítmica \(g(x) = \log_2(x)\) es la función inversa de:</p>
+          <div class="options-group">
+            <label class="option-label"><input type="radio" name="t5" value="correct"> \(f(x) = 2^x\)</label>
+            <label class="option-label"><input type="radio" name="t5" value="wrong"> \(f(x) = x^2\)</label>
+          </div>
+          <button class="btn btn-secondary" style="margin-top:10px;" onclick="checkTask('t5', 't5-fb', '¡Correcto! La función exponencial base 2 es la inversa directa del logaritmo base 2[cite: 3].')">Comprobar</button>
+          <div id="t5-fb" class="feedback"></div>
+        </div>
+
+        <!-- Tarea 6 -->
+        <div class="task-item">
+          <h4>Ejercicio 6 (Tema 3 - Asíntota Vertical Logarítmica):</h4>
+          <p>¿En qué recta se encuentra la asíntota vertical de la función \(g(x) = \log_2(x)\)?[cite: 3]</p>
+          <div class="options-group">
+            <label class="option-label"><input type="radio" name="t6" value="correct"> \(x = 0\) (Eje vertical Y)</label>
+            <label class="option-label"><input type="radio" name="t6" value="wrong"> \(y = 0\) (Eje horizontal X)</label>
+          </div>
+          <button class="btn btn-secondary" style="margin-top:10px;" onclick="checkTask('t6', 't6-fb', '¡Excelente! La asíntota vertical de la función logarítmica básica está en x = 0[cite: 3].')">Comprobar</button>
+          <div id="t6-fb" class="feedback"></div>
+        </div>
+
+        <!-- Tarea 7 -->
+        <div class="task-item">
+          <h4>Ejercicio 7 (Tema 4 - Ecuación Exponencial A):</h4>
+          <p>Resuelve la ecuación exponencial \(3^{2x - 1} = 81\) y determina el valor exacto de \(x\)[cite: 3].</p>
+          <div class="options-group">
+            <label class="option-label"><input type="radio" name="t7" value="correct"> \(x = \frac{5}{2}\)</label>
+            <label class="option-label"><input type="radio" name="t7" value="wrong"> \(x = 2\)</label>
+          </div>
+          <button class="btn btn-secondary" style="margin-top:10px;" onclick="checkTask('t7', 't7-fb', '¡Muy bien! 2x - 1 = 4 ⇒ 2x = 5 ⇒ x = 5/2[cite: 3].')">Comprobar</button>
+          <div id="t7-fb" class="feedback"></div>
+        </div>
+
+        <!-- Tarea 8 -->
+        <div class="task-item">
+          <h4>Ejercicio 8 (Tema 4 - Ecuación Exponencial B):</h4>
+          <p>Resuelve la ecuación exponencial \(2^{2x - 1} = 128\)[cite: 3].</p>
+
+          <input type="number" id="t8-ans" style="padding:8px; width:130px; margin-top:8px;" placeholder="Valor de x">
+          <button class="btn btn-secondary" onclick="checkTaskInput('t8-ans', 4, 't8-fb', '¡Correcto! 2^(2x-1) = 2^7 ⇒ 2x - 1 = 7 ⇒ 2x = 8 ⇒ x = 4[cite: 3].')">Comprobar</button>
+          <div id="t8-fb" class="feedback"></div>
+        </div>
+
+        <!-- Tarea 9 -->
+        <div class="task-item">
+          <h4>Ejercicio 9 (Tema 5 - Sucesión de Fármaco):</h4>
+          <p>Dosis inicial \(a_1 = 80\text{ mg}\). Si se elimina el 50% cada 3 horas, ¿cuántos mg de medicamento quedan en la sangre al cabo de la 5.ª etapa (\(a_5\))?[cite: 3]</p>
+          <input type="number" id="t9-ans" style="padding:8px; width:130px; margin-top:8px;" placeholder="Miligramos">
+          <button class="btn btn-secondary" onclick="checkTaskInput('t9-ans', 5, 't9-fb', '¡Excelente! a₁=80, a₂=40, a₃=20, a₄=10, a₅=5 mg[cite: 3].')">Comprobar</button>
+          <div id="t9-fb" class="feedback"></div>
+        </div>
+
+        <!-- Tarea 10 -->
+        <div class="task-item">
+          <h4>Ejercicio 10 (Tema 5 - Conteo Celular STEAM):</h4>
+          <p>Un cultivo de células se inicia con 2 células (\(a_1 = 2\)) y se duplica en cada etapa. ¿Cuántas células habrá en la etapa 3 (\(a_3\))?[cite: 3]</p>
+          <input type="number" id="t10-ans" style="padding:8px; width:130px; margin-top:8px;" placeholder="Cantidad de células">
+          <button class="btn btn-secondary" onclick="checkTaskInput('t10-ans', 8, 't10-fb', '¡Muy bien! Etapa 1 = 2, Etapa 2 = 4, Etapa 3 = 8 células[cite: 3].')">Comprobar</button>
+          <div id="t10-fb" class="feedback"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: EVALUACIÓN SIMULADOR (20 PREGUNTAS) -->
+    <section id="evaluacion" class="tab-content">
+      
+      <div class="timer-box">
+        ⏱️ Tiempo Restante del Examen: <span id="time-display">40:00</span>
+      </div>
+
+      <div id="score-banner" class="score-banner">
+        <h2>Calificación Final: <span id="final-score">0</span> / 10 Puntos</h2>
+        <p id="score-msg"></p>
+        <button class="btn" style="margin-top:15px; background:#ffffff; color:#047857; font-size:1.05rem;" onclick="sendToGmail()">📧 Enviar Reporte a Correo Personal (lligui2768@gmail.com)</button>
+      </div>
+
+      <form id="exam-form">
+        <div class="card">
+          <h2>📝 Cuestionario de Evaluación (20 Preguntas Tipo Examen 3º BGU)</h2>
+          <p style="margin-bottom: 1.5rem;">Responde las 20 preguntas basadas en el temario del II Trimestre. <b>Nota: Solo se permite 1 intento por estudiante.</b>[cite: 3]</p>
+
+          <div id="questions-container"></div>
+
+          <button type="button" id="submit-exam-btn" class="btn" style="width: 100%; padding: 1.1rem; font-size: 1.15rem; margin-top: 1rem;" onclick="gradeExam()">📩 Enviar y Calificar Examen</button>
+        </div>
+      </form>
+    </section>
+
+  </main>
+
+  <script>
+    // Inicialización KaTeX
+    function renderMath() {
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // Mezcla Aleatoria (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+      let shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    // Pestañas
+    function switchTab(tabId, event) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+      setTimeout(renderMath, 50);
+    }
+
+    // Comprobaciones de Tareas
+    function checkTask(groupName, fbId, successText) {
+      const selected = document.querySelector(`input[name="${groupName}"]:checked`);
+      const fb = document.getElementById(fbId);
+      fb.style.display = 'block';
+      if (selected && selected.value === 'correct') {
+        fb.className = 'feedback correct';
+        fb.innerHTML = successText;
+      } else {
+        fb.className = 'feedback incorrect';
+        fb.innerHTML = 'Incorrecto. Revisa el procedimiento teórico e intenta de nuevo[cite: 3].';
+      }
+      renderMath();
+    }
+
+    function checkTaskInput(inputId, expectedVal, fbId, successText) {
+      const val = document.getElementById(inputId).value;
+      const fb = document.getElementById(fbId);
+      fb.style.display = 'block';
+      if (val == expectedVal) {
+        fb.className = 'feedback correct';
+        fb.innerHTML = successText;
+      } else {
+        fb.className = 'feedback incorrect';
+        fb.innerHTML = 'Incorrecto. Verifica tus cálculos algebraicos[cite: 3].';
+      }
+      renderMath();
+    }
+
+    // Banco de 20 Preguntas Exclusivo para 3º BGU
+    const examQuestions = [
+      { 
+        q: "1. Dada la función exponencial \\(f(x) = 2^{x+1}\\), identifica correctamente su dominio, recorrido y la ecuación de su asíntota horizontal:[cite: 3]", 
+        svg: `<svg width="380" height="150" viewBox="-5 -2 10 8"><line x1="-5" y1="0" x2="5" y2="0" stroke="#64748b" stroke-width="0.1"/><line x1="0" y1="-2" x2="0" y2="6" stroke="#64748b" stroke-width="0.1"/><line x1="-5" y1="1" x2="5" y2="1" stroke="#dc2626" stroke-width="0.15" stroke-dasharray="0.25"/><path d="M -5,1.03 Q -2,1.25 0,2 T 2,7" fill="none" stroke="#0d9488" stroke-width="0.3"/></svg>`,
+        options: [
+          "Dominio: \\(\\mathbb{R}\\); Recorrido: \\((1, +\\infty)\\); Asíntota horizontal: \\(y = 1\\)", 
+          "Dominio: \\((0, +\\infty)\\); Recorrido: \\(\\mathbb{R}\\); Asíntota horizontal: \\(x = 0\\)", 
+          "Dominio: \\(\\mathbb{R}\\); Recorrido: \\((0, +\\infty)\\); Asíntota horizontal: \\(y = 0\\)"
+        ], 
+        correctText: "Dominio: \\(\\mathbb{R}\\); Recorrido: \\((1, +\\infty)\\); Asíntota horizontal: \\(y = 1\\)", 
+        just: "El dominio de la exponencial es \\(\\mathbb{R}\\). La traslación en +1 ubica la asíntota en \\(y = 1\\) y el recorrido en \\((1, +\\infty)\\)[cite: 3]." 
+      },
+      { 
+        q: "2. Al simplificar la expresión numérica \\(E = \\log_2(4) + \\log_2(64) - \\log_2(8)\\), el valor final de E es:[cite: 3]", 
+        options: ["5", "4", "3", "6"], 
+        correctText: "5", 
+        just: "\\(E = \\log_2\\left(\\frac{4 \\cdot 64}{8}\\right) = \\log_2(32) = 5\\)[cite: 3]." 
+      },
+      { 
+        q: "3. El dominio de la función logarítmica \\(g(x) = \\log_2(x)\\) corresponde al intervalo:[cite: 3]", 
+        options: ["\\((0, +\\infty)\\)", "\\(\\mathbb{R}\\)", "\\((1, +\\infty)\\)"], 
+        correctText: "\\((0, +\\infty)\\)", 
+        just: "Los logaritmos solo están definidos para argumentos estrictamente positivos \\(x > 0\\)[cite: 3]." 
+      },
+      { 
+        q: "4. La gráfica de la función logarítmica \\(g(x) = \\log_2(x)\\) es simétrica con la función exponencial \\(f(x) = 2^x\\) respecto a:[cite: 3]", 
+        options: ["La recta \\(y = x\\)", "El eje horizontal Y", "La recta \\(y = 2x\\)"], 
+        correctText: "La recta \\(y = x\\)", 
+        just: "Toda función y su inversa son simétricas respecto a la recta bisectriz \\(y = x\\)[cite: 3]." 
+      },
+      { 
+        q: "5. Dada la ecuación exponencial \\(3^{2x - 1} = 81\\), al descomponer 81 como potencia de base 3, el valor exacto de \\(x\\) es:[cite: 3]", 
+        options: ["\\(x = \\frac{5}{2}\\)", "\\(x = 2\\)", "\\(x = 3\\)"], 
+        correctText: "\\(x = \\frac{5}{2}\\)", 
+        just: "\\(3^{2x-1} = 3^4 \\implies 2x - 1 = 4 \\implies 2x = 5 \\implies x = \\frac{5}{2}\\)[cite: 3]." 
+      },
+      { 
+        q: "6. Un paciente recibe una dosis inicial de 80 mg de medicamento (\\(a_1 = 80\\)). Si se elimina la mitad (50%) cada 3 horas, ¿cuántos mg de medicamento quedan en la sangre al cabo de la 5.ª etapa (\\(a_5\\))?[cite: 3]", 
+        options: ["5 mg", "10 mg", "20 mg", "2.5 mg"], 
+        correctText: "5 mg", 
+        just: "\\(a_1=80, a_2=40, a_3=20, a_4=10, a_5=5\\text{ mg}\\)[cite: 3]." 
+      },
+      { 
+        q: "7. Dada la función logarítmica \\(g(x) = \\log_2(x)\\), ¿cuál es la ecuación de su asíntota vertical?[cite: 3]", 
+        options: ["\\(x = 0\\)", "\\(y = 0\\)", "\\(x = 1\\)"], 
+        correctText: "\\(x = 0\\)", 
+        just: "La asíntota vertical de la función logarítmica elemental es el eje Y (\\(x = 0\\))[cite: 3]." 
+      },
+      { 
+        q: "8. Al aplicar propiedades en \\(E = \\log_2\\left(\\frac{4 \\times 64}{8}\\right)\\), la propiedad del cociente expresa que:[cite: 3]", 
+        options: ["La resta de logaritmos se convierte en cociente", "La suma se convierte en resta", "El exponente pasa a multiplicar"], 
+        correctText: "La resta de logaritmos se convierte en cociente", 
+        just: "\\(\\log_b(M) - \\log_b(N) = \\log_b\\left(\\frac{M}{N}\\right)\\)[cite: 3]." 
+      },
+      { 
+        q: "9. Dada la ecuación exponencial \\(2^{2x - 1} = 128\\), el valor exacto de \\(x\\) que satisface la ecuación es:[cite: 3]", 
+        options: ["\\(x = 4\\)", "\\(x = 3\\)", "\\(x = 5\\)"], 
+        correctText: "\\(x = 4\\)", 
+        just: "\\(2^{2x-1} = 2^7 \\implies 2x - 1 = 7 \\implies 2x = 8 \\implies x = 4\\)[cite: 3]." 
+      },
+      { 
+        q: "10. ¿En qué punto interseca a su eje la gráfica de la función logarítmica elemental \\(g(x) = \\log_2(x)\\)?[cite: 3]", 
+        options: ["Punto (1, 0) en el eje X", "Punto (0, 1) en el eje Y", "Punto (0, 0)"], 
+        correctText: "Punto (1, 0) en el eje X", 
+        just: "Como \\(\\log_2(1) = 0\\), corta al eje de las abscisas en \\((1, 0)\\)[cite: 3]." 
+      },
+      { 
+        q: "11. Si una persona toma 80 mg de fármaco que se reduce al 50% cada 3 horas, ¿cuántos miligramos quedarán cuando hayan transcurrido 12 horas?[cite: 3]", 
+        options: ["5 mg", "10 mg", "15 mg"], 
+        correctText: "5 mg", 
+        just: "12 horas equivalen a 4 lapsos de 3h, alcanzando la 5.ª etapa: \\(a_5 = 5\\text{ mg}\\)[cite: 3]." 
+      },
+      { 
+        q: "12. En la función exponencial básica \\(f(x) = 2^x\\), ¿cuál es el punto de corte con el eje Y?[cite: 3]", 
+        options: ["(0, 1)", "(1, 0)", "(0, 2)"], 
+        correctText: "(0, 1)", 
+        just: "Evaluando en \\(x = 0\\): \\(f(0) = 2^0 = 1 \\implies (0, 1)\\)[cite: 3]." 
+      },
+      { 
+        q: "13. Para la función exponencial básica \\(f(x) = 2^x\\), la ecuación de su asíntota horizontal es:[cite: 3]", 
+        options: ["\\(y = 0\\)", "\\(x = 0\\)", "\\(y = 1\\)"], 
+        correctText: "\\(y = 0\\)", 
+        just: "Su asíntota horizontal coincide con el eje X (\\(y = 0\\))[cite: 3]." 
+      },
+      { 
+        q: "14. Un grupo de células cancerosas (Proyecto STEAM) se inicia con 2 células (\\(a_1 = 2\\)) y se duplica en cada etapa. En la etapa 3 habrá:[cite: 3]", 
+        options: ["8 células", "6 células", "4 células"], 
+        correctText: "8 células", 
+        just: "\\(a_1 = 2, a_2 = 4, a_3 = 8\\) células[cite: 3]." 
+      },
+      { 
+        q: "15. La solución de la ecuación exponencial básica \\(2^x = 8\\) es:[cite: 3]", 
+        options: ["\\(x = 3\\)", "\\(x = 4\\)", "\\(x = 2\\)"], 
+        correctText: "\\(x = 3\\)", 
+        just: "Como \\(8 = 2^3 \\implies x = 3\\)[cite: 3]." 
+      },
+      { 
+        q: "16. La propiedad de los logaritmos \\(\\log_b(M) + \\log_b(N)\\) se transforma en:[cite: 3]", 
+        options: ["\\(\\log_b(M \\cdot N)\\)", "\\(\\log_b(M + N)\\)", "\\(\\log_b(M^N)\\)"], 
+        correctText: "\\(\\log_b(M \\cdot N)\\)", 
+        just: "La suma de logaritmos de igual base es igual al logaritmo del producto." 
+      },
+      { 
+        q: "17. El recorrido o rango de la función logarítmica \\(g(x) = \\log_2(x)\\) comprende:[cite: 3]", 
+        options: ["Todos los números reales \\(\\mathbb{R}\\)", "\\((0, +\\infty)\\)", "\\((1, +\\infty)\\)"], 
+        correctText: "Todos los números reales \\(\\mathbb{R}\\)", 
+        just: "La imagen de la función logarítmica abarca todo el conjunto \\(\\mathbb{R}\\)[cite: 3]." 
+      },
+      { 
+        q: "18. Para la función exponencial \\(f(x) = 2^{x+1}\\), el corte con el eje Y se ubica en:[cite: 3]", 
+        options: ["(0, 2)", "(0, 1)", "(1, 0)"], 
+        correctText: "(0, 2)", 
+        just: "Evaluando en \\(x = 0\\): \\(f(0) = 2^{0+1} = 2^1 = 2 \\implies (0, 2)\\)[cite: 3]." 
+      },
+      { 
+        q: "19. La razón \\(r\\) de la sucesión del problema de decaimiento del fármaco es:[cite: 3]", 
+        options: ["\\(\\frac{1}{2}\\)", "2", "\\(3\\)"], 
+        correctText: "\\(\\frac{1}{2}\\)", 
+        just: "Al eliminarse el 50% en cada periodo, cada término se multiplica por \\(r = \\frac{1}{2}\\)[cite: 3]." 
+      },
+      { 
+        q: "20. Resolver la ecuación exponencial \\(5^{x+2} = 125\\) da como resultado:", 
+        options: ["\\(x = 1\\)", "\\(x = 3\\)", "\\(x = 2\\)"], 
+        correctText: "\\(x = 1\\)", 
+        just: "\\(5^{x+2} = 5^3 \\implies x + 2 = 3 \\implies x = 1\\)." 
+      }
+    ];
+
+    // Renderizar Preguntas Mezcladas Aleatoriamente
+    function renderQuestions() {
+      const container = document.getElementById('questions-container');
+      container.innerHTML = '';
+
+      examQuestions.forEach((q, idx) => {
+        const shuffledOpts = shuffleArray(q.options);
+        
+        const qDiv = document.createElement('div');
+        qDiv.className = 'question-card';
+        qDiv.innerHTML = `
+          <p><strong>${q.q}</strong></p>
+          ${q.svg ? `<div class="svg-container">${q.svg}</div>` : ''}
+          <div class="options-group">
+            ${shuffledOpts.map((opt) => `
+              <label class="option-label">
+                <input type="radio" name="q_${idx}" value="${encodeURIComponent(opt)}">
+                ${opt}
+              </label>
+            `).join('')}
+          </div>
+          <div id="just_${idx}" class="justification-box" style="display:none;">
+            <strong>Justificación Analítica:</strong> ${q.just}
+          </div>
+        `;
+        container.appendChild(qDiv);
+      });
+
+      renderMath();
+    }
+
+    // Temporizador
+    let timeLeft = 2400;
+    function startTimer() {
+      const timerDisplay = document.getElementById('time-display');
+      const timerInterval = setInterval(() => {
+        if (hasSubmitted) {
+          clearInterval(timerInterval);
+          return;
+        }
+        let mins = Math.floor(timeLeft / 60);
+        let secs = timeLeft % 60;
+        timerDisplay.textContent = `${mins < 10 ? '0':''}${mins}:${secs < 10 ? '0':''}${secs}`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          gradeExam();
+        }
+        timeLeft--;
+      }, 1000);
+    }
+
+    let globalReportData = {};
+    let hasSubmitted = false;
+
+    // Calificar Examen y Bloquear (1 Intento)
+    function gradeExam() {
+      if (hasSubmitted) {
+        alert('⚠️ Ya has realizado tu evaluación (1 intento máximo por sesión).');
+        return;
+      }
+
+      const name = document.getElementById('student-name').value.trim();
+      const spec = document.getElementById('student-specialty').value;
+      const paral = document.getElementById('student-parallel').value;
+
+      if (!name || !spec || !paral) {
+        alert('Por favor, completa Nombre, Especialidad y Paralelo en los datos informativos en la parte superior.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      let correctCount = 0;
+
+      examQuestions.forEach((q, idx) => {
+        const selected = document.querySelector(`input[name="q_${idx}"]:checked`);
+        const justBox = document.getElementById(`just_${idx}`);
+        justBox.style.display = 'block';
+
+        if (selected && decodeURIComponent(selected.value) === q.correctText) {
+          correctCount++;
+        }
+      });
+
+      const scoreOn10 = ((correctCount / examQuestions.length) * 10).toFixed(2);
+      
+      const banner = document.getElementById('score-banner');
+      const scoreDisplay = document.getElementById('final-score');
+      const msg = document.getElementById('score-msg');
+
+      banner.style.display = 'block';
+      scoreDisplay.textContent = scoreOn10;
+
+      if (scoreOn10 >= 7.0) {
+        msg.textContent = `¡Excelente trabajo ${name}! Has demostrado dominio analítico en las funciones y progresiones de 3º BGU.`;
+      } else {
+        msg.textContent = `Estimado(a) ${name}: Te sugerimos repasar la fundamentación teórica de ecuaciones y logaritmos.`;
+      }
+
+      globalReportData = {
+        name,
+        course: "3ro BGU",
+        specialty: spec,
+        parallel: paral,
+        score: scoreOn10,
+        correct: correctCount,
+        total: examQuestions.length
+      };
+
+      hasSubmitted = true;
+
+      // Bloqueo de Controles
+      const submitBtn = document.getElementById('submit-exam-btn');
+      submitBtn.disabled = true;
+      submitBtn.style.background = '#94a3b8';
+      submitBtn.style.cursor = 'not-allowed';
+      submitBtn.textContent = '🔒 Evaluación Finalizada (1 Intento Completado)';
+
+      document.querySelectorAll('#exam-form input[type="radio"]').forEach(radio => radio.disabled = true);
+      document.getElementById('student-name').disabled = true;
+      document.getElementById('student-specialty').disabled = true;
+      document.getElementById('student-parallel').disabled = true;
+
+      renderMath();
+      window.scrollTo({ top: banner.offsetTop - 80, behavior: 'smooth' });
+    }
+
+    // Envío Automático a Gmail lligui2768@gmail.com
+    function sendToGmail() {
+      if (!globalReportData.name) {
+        alert("Debes presionar el botón de Calificar Examen antes de enviar.");
+        return;
+      }
+
+      const recipient = "lligui2768@gmail.com";
+      const subject = encodeURIComponent(`Examen Matemática 3ro BGU - ${globalReportData.name} (${globalReportData.specialty} '${globalReportData.parallel}')`);
+      const bodyText = encodeURIComponent(
+        `REPORTE OFICIAL DE EVALUACIÓN DE MATEMÁTICA - 3ro BGU - II TRIMESTRE 2026\n` +
+        `=====================================================\n` +
+        `DATOS DEL ESTUDIANTE:\n` +
+        `• Nombres y Apellidos: ${globalReportData.name}\n` +
+        `• Curso: 3ro BGU\n` +
+        `• Especialidad: ${globalReportData.specialty}\n` +
+        `• Paralelo: ${globalReportData.parallel}\n\n` +
+        `RESULTADOS DE LA EVALUACIÓN (1 INTENTO ÚNICO):\n` +
+        `• Calificación Final: ${globalReportData.score} / 10 Puntos\n` +
+        `• Aciertos: ${globalReportData.correct} de ${globalReportData.total} preguntas\n\n` +
+        `Docente Evaluador: Msc. Edwin Lliguipuma E.\n` +
+        `=====================================================\n` +
+        `Reporte enviado desde el Simulador Web Educativo de 3º BGU.`
+      );
+
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${bodyText}`;
+      window.open(gmailUrl, '_blank');
+    }
+
+    window.onload = function() {
+      renderQuestions();
+      startTimer();
+    };
+  </script>
+</body>
+</html>
